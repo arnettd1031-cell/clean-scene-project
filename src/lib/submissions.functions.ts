@@ -43,6 +43,7 @@ export const submitQuote = createServerFn({ method: "POST" })
       property_address: payload.property_address || null,
       square_footage: payload.square_footage || null,
       desired_start: payload.desired_start || null,
+      preferred_time: payload.preferred_time ?? null,
       cleaning_needs: payload.cleaning_needs || null,
       attachment_path: payload.attachment_path || null,
     });
