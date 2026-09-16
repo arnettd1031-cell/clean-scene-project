@@ -1,0 +1,35 @@
+import { useState, type FormEvent } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { CheckCircle2, LoaderCircle } from "lucide-react";
+import { submitQuote } from "@/lib/submissions.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+
+const facilities=["Office","Professional Office","Lobby / Common Area","Daycare","Commercial Facility","Move-In / Move-Out","Other"];
+const frequencies=["One-Time Cleaning","Daily","Multiple Times Per Week","Weekly","Biweekly","Monthly","Not Sure / Need Recommendation"];
+const areas=["Floors","Restrooms","Break Rooms","Offices / Workspaces","Lobby / Reception","Common Areas","Interior Glass","Trash Removal","High-Touch Surfaces","Other"];
+const Field=({label,children}:{label:string;children:React.ReactNode})=><label className="grid gap-2 text-sm font-semibold text-foreground">{label}{children}</label>;
+
+export function QuoteForm({compact=false}:{compact?:boolean}) {
+  const send=useServerFn(submitQuote); const [busy,setBusy]=useState(false); const [done,setDone]=useState(false); const [error,setError]=useState("");
+  async function onSubmit(e:FormEvent<HTMLFormElement>){ e.preventDefault(); setBusy(true); setError(""); const form=e.currentTarget; const fd=new FormData(form); try {
+    let attachment_path=""; const file=fd.get("attachment"); if(file instanceof File && file.size){ if(file.size>10*1024*1024) throw new Error("Please choose a file smaller than 10 MB."); const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,"-"); attachment_path=`incoming/${crypto.randomUUID()}-${safe}`; const {error:uploadError}=await supabase.storage.from("quote-attachments").upload(attachment_path,file); if(uploadError) throw new Error("The attachment could not be uploaded. Please try again."); }
+    await send({data:{first_name:String(fd.get("first_name")),last_name:String(fd.get("last_name")),business_name:String(fd.get("business_name")),email:String(fd.get("email")),phone:String(fd.get("phone")),property_address:String(fd.get("property_address")),city:String(fd.get("city")),zip_code:String(fd.get("zip_code")),facility_type:String(fd.get("facility_type")) as any,square_footage:String(fd.get("square_footage")),frequency:String(fd.get("frequency")) as any,desired_start:String(fd.get("desired_start")),preferred_time:(String(fd.get("preferred_time"))||undefined) as any,cleaning_areas:fd.getAll("cleaning_areas").map(String),cleaning_needs:String(fd.get("cleaning_needs")),attachment_path,contact_consent:fd.get("contact_consent")==="on",website:String(fd.get("website"))}}); setDone(true); form.reset();
+  } catch(err){setError(err instanceof Error?err.message:"Please check your information and try again.");} finally{setBusy(false)} }
+  if(done)return <div className="mx-auto max-w-xl py-14 text-center"><CheckCircle2 className="mx-auto size-12 text-accent-foreground"/><h3 className="mt-5 font-serif text-3xl text-primary">Thank You!</h3><p className="mt-4 leading-7 text-muted-foreground">Your quote request has been received. Clean Scene Cleaning Services LLC will review your information and contact you about your cleaning needs.</p></div>;
+  return <form onSubmit={onSubmit} className="mx-auto max-w-4xl space-y-9" noValidate>
+    <input name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+    <fieldset><legend>Contact Information</legend><div className="form-grid"><Field label="First Name *"><Input name="first_name" required maxLength={100}/></Field><Field label="Last Name *"><Input name="last_name" required maxLength={100}/></Field><Field label="Business / Organization Name *"><Input name="business_name" required maxLength={160}/></Field><Field label="Email Address *"><Input name="email" type="email" required maxLength={255}/></Field><Field label="Phone Number *"><Input name="phone" type="tel" required pattern="[+()\-. 0-9]{7,30}"/></Field></div></fieldset>
+    <fieldset><legend>Property Information</legend><div className="form-grid"><Field label="Property Address"><Input name="property_address" maxLength={300}/></Field><Field label="City *"><Input name="city" required maxLength={100}/></Field><Field label="ZIP Code *"><Input name="zip_code" required pattern="[0-9]{5}(-[0-9]{4})?"/></Field><Field label="Type of Facility *"><select name="facility_type" required defaultValue="" className="form-control"><option value="" disabled>Select facility type</option>{facilities.map(x=><option key={x}>{x}</option>)}</select></Field></div></fieldset>
+    {!compact&&<><fieldset><legend>Cleaning Information</legend><div className="form-grid"><Field label="Approximate Square Footage"><Input name="square_footage" maxLength={50}/></Field><Field label="Desired Cleaning Frequency *"><select name="frequency" required defaultValue="" className="form-control"><option value="" disabled>Select frequency</option>{frequencies.map(x=><option key={x}>{x}</option>)}</select></Field><Field label="When would you like service to begin?"><Input name="desired_start" type="date"/></Field><Field label="Preferred cleaning time"><select name="preferred_time" defaultValue="" className="form-control"><option value="">Select a preference</option>{["Business Hours","After Business Hours","Either / Flexible"].map(x=><option key={x}>{x}</option>)}</select></Field></div></fieldset>
+    <fieldset><legend>What would you like cleaned?</legend><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{areas.map(x=><label key={x} className="flex items-center gap-3 rounded-md border border-border bg-background p-3 text-sm"><input type="checkbox" name="cleaning_areas" value={x} className="size-4 accent-primary"/>{x}</label>)}</div></fieldset>
+    <Field label="Tell Us About Your Cleaning Needs"><Textarea name="cleaning_needs" maxLength={3000} rows={6} placeholder="Tell us about your facility, current cleaning situation, problem areas, special requests, or anything else we should know."/></Field>
+    <Field label="Upload photos or facility information (optional, 10 MB max)"><Input name="attachment" type="file" accept="image/png,image/jpeg,application/pdf" className="h-auto py-3"/></Field></>}
+    {compact&&<input type="hidden" name="frequency" value="Not Sure / Need Recommendation"/>}
+    <label className="flex items-start gap-3 text-sm leading-6"><input type="checkbox" name="contact_consent" required className="mt-1 size-4 accent-primary"/><span>I agree to be contacted by Clean Scene Cleaning Services LLC regarding my quote request. *</span></label>
+    {error&&<p role="alert" className="text-sm font-semibold text-destructive">{error}</p>}
+    <Button type="submit" size="lg" className="h-13 w-full sm:w-auto" disabled={busy}>{busy&&<LoaderCircle className="animate-spin"/>}Request My Free Quote</Button>
+  </form>;
+}
