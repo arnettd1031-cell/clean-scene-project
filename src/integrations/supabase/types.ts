@@ -14,7 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contact_messages: {
+        Row: {
+          business_name: string | null
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          phone: string | null
+        }
+        Insert: {
+          business_name?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          phone?: string | null
+        }
+        Update: {
+          business_name?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          phone?: string | null
+        }
+        Relationships: []
+      }
+      quote_requests: {
+        Row: {
+          attachment_path: string | null
+          business_name: string
+          city: string
+          cleaning_areas: string[]
+          cleaning_needs: string | null
+          contact_consent: boolean
+          created_at: string
+          desired_start: string | null
+          email: string
+          facility_type: string
+          first_name: string
+          frequency: string
+          id: string
+          last_name: string
+          phone: string
+          preferred_time: string | null
+          property_address: string | null
+          square_footage: string | null
+          zip_code: string
+        }
+        Insert: {
+          attachment_path?: string | null
+          business_name: string
+          city: string
+          cleaning_areas?: string[]
+          cleaning_needs?: string | null
+          contact_consent: boolean
+          created_at?: string
+          desired_start?: string | null
+          email: string
+          facility_type: string
+          first_name: string
+          frequency: string
+          id?: string
+          last_name: string
+          phone: string
+          preferred_time?: string | null
+          property_address?: string | null
+          square_footage?: string | null
+          zip_code: string
+        }
+        Update: {
+          attachment_path?: string | null
+          business_name?: string
+          city?: string
+          cleaning_areas?: string[]
+          cleaning_needs?: string | null
+          contact_consent?: boolean
+          created_at?: string
+          desired_start?: string | null
+          email?: string
+          facility_type?: string
+          first_name?: string
+          frequency?: string
+          id?: string
+          last_name?: string
+          phone?: string
+          preferred_time?: string | null
+          property_address?: string | null
+          square_footage?: string | null
+          zip_code?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
