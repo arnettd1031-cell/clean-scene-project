@@ -1,0 +1,5 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { QuoteForm } from "@/components/quote-form";
+import { PageHero } from "@/components/site-shell";
+export const Route=createFileRoute("/quote")({head:()=>({meta:[{title:"Request a Commercial Cleaning Quote | Clean Scene"},{name:"description",content:"Request a free custom quote for office or commercial cleaning in North Central Indiana."},{property:"og:title",content:"Request a Free Cleaning Quote | Clean Scene"},{property:"og:description",content:"Tell Clean Scene about your commercial property and cleaning needs."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}],links:[{rel:"canonical",href:"/quote"}]}),component:Quote});
+function Quote(){return <><PageHero eyebrow="Request a free quote" title="Let’s Talk About Your Space">Tell us a little about your facility and the cleaning services you’re looking for. Clean Scene will review your information and follow up about your quote.</PageHero><section className="section"><div className="section-inner"><QuoteForm/></div></section></>}
